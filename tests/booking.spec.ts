@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { myBooking } from './booking.info';
+import { myBookingError } from './booking.info.error';
 
 test.describe('Happy Path', () => {
 
@@ -35,7 +36,7 @@ test.describe('Happy Path', () => {
         });
         //check for successful post
         expect(createBooking.status()).toBe(200);
-        //find booking with booking id and output json
+        //find booking with booking id
         const response = await createBooking.json();
 
         expect(response.booking.firstname).toBe(myBooking.firstname);
@@ -77,5 +78,23 @@ test.describe('Happy Path', () => {
         expect(deleteResponse.status()).toBe(201);
         const confirmDeleted = await request.get(`/booking/${response.bookingid}`);
         expect(confirmDeleted.status()).toBe(404);
+    });
+
+    test.describe('Negative Paths', () => {
+        test('404 response for nonexistant booking id', async ({ request }) => {
+        //test nonexistant booking id
+        const response = await request.get('/booking/0');
+
+        expect(response.status()).toBe(404);
+        });
+
+        test('try to create booking missing a required field', async ({ request }) => {
+            //create booking with missing last name field
+            const createBooking = await request.post('/booking', {
+                data: myBookingError,
+            });
+            //expect error code
+            expect(createBooking.status()).toBe(500);
+        });
     });
 });

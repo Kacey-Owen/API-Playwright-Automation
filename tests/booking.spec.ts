@@ -93,7 +93,7 @@ test.describe('Happy Path', () => {
             const createBooking = await request.post('/booking', {
                 data: myBookingError,
             });
-            //expect error code
+            //expect error code 500
             expect(createBooking.status()).toBe(500);
         });
     });

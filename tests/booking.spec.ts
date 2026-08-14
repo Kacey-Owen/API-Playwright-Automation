@@ -2,13 +2,30 @@ import { test, expect } from '@playwright/test';
 import { myBooking } from './booking.info';
 
 test.describe('Happy Path', () => {
-    test('get booking id list and output one booking', async ({ request }) => {
+
+    test('Check if api is up and running', async ({ request }) => {
+        //ping api
+        const response = await request.get('/ping');
+
+        expect(response.status()).toBe(201);
+    });
+
+    test('get booking list and test specific id', async ({ request }) => {
         //get list 
         const list = await (await request.get('/booking')).json();
+
         //get specific id
         const response = await request.get(`/booking/${list[0].bookingid}`);
-        //output booking
-        console.log(await response.json());
+
+        expect(response.ok()).toBeTruthy();
+
+        //get json
+        const responseJson = await response.json();
+
+        expect(responseJson).toHaveProperty('firstname');
+        expect(responseJson).toHaveProperty('totalprice');
+        expect(responseJson).toHaveProperty('depositpaid');
+        expect(responseJson).toHaveProperty('bookingdates');
     });
     
     test('Create a booking, then update it, then delete it ', async ({ request }) => {
@@ -21,16 +38,18 @@ test.describe('Happy Path', () => {
         //find booking with booking id and output json
         const response = await createBooking.json();
 
-        console.log(response.bookingid);
+        expect(response.booking.firstname).toBe(myBooking.firstname);
+        expect(response.booking.lastname).toBe(myBooking.lastname);
 
-        const booking = await request.get(`/booking/${response.bookingid}`);
-
-        console.log(await booking.json());
+        const booking = await (await request.get(`/booking/${response.bookingid}`)).json();
+        //check for the correct booking details
+        expect(booking.firstname).toBe(myBooking.firstname);
+        expect(booking.totalprice).toBe(myBooking.totalprice);
         //create auth token and update booking
         const authResponse = await request.post('/auth', {
             data: {
                 username: "admin",
-                password: "password123"
+                password: "password123" 
             }
         });
 
@@ -43,10 +62,10 @@ test.describe('Happy Path', () => {
                 'Accept': 'application/json'
             }
         });
-
+        //test the partial booking update
         expect(updatedBooking.ok()).toBeTruthy();
-        //show the update 
-        console.log(await updatedBooking.json());
+        const updatedResponse = await updatedBooking.json();
+        expect(updatedResponse.depositpaid).toBe(false);
         //delete booking
         const deleteResponse = await request.delete(`/booking/${response.bookingid}`, {
             headers: {
@@ -54,8 +73,9 @@ test.describe('Happy Path', () => {
                 'Content-Type': 'application/json'
             }
         });
-
-        console.log(deleteResponse.status());
+        //test if deletion worked as expected
         expect(deleteResponse.status()).toBe(201);
+        const confirmDeleted = await request.get(`/booking/${response.bookingid}`);
+        expect(confirmDeleted.status()).toBe(404);
     });
 });

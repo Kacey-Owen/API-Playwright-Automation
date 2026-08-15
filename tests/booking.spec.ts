@@ -96,8 +96,8 @@ test.describe('Negative Paths', () => {
             const createBooking = await request.post('/booking', {
                 data: myBookingError,
             });
-            //expect error code 500
-            expect(createBooking.status()).toBe(500);
+            //check error code
+            expect(createBooking.status()).toBe(500);//api returns 500 code for unahndled exception
         });
 
         test('Try to patch a booking without auth headers', async ({ request }) => {
@@ -145,9 +145,9 @@ test.describe('Negative Paths', () => {
             expect(createBooking.status()).toBe(200);
             //try to patch new booking
             const response = await createBooking.json();
-            const updatedBooking = await request.delete(`/booking/${response.bookingid}`, {});
+            const deletedBooking = await request.delete(`/booking/${response.bookingid}`, {});
             //check for error code 403
-            expect(updatedBooking.status()).toBe(403);
+            expect(deletedBooking.status()).toBe(403);
         });
 
         test('Try to delete a booking with fake token', async ({ request }) => {
@@ -159,26 +159,18 @@ test.describe('Negative Paths', () => {
             expect(createBooking.status()).toBe(200);
             //try to patch new booking
             const response = await createBooking.json();
-            const updatedBooking = await request.delete(`/booking/${response.bookingid}`, {
+            const deletedBooking = await request.delete(`/booking/${response.bookingid}`, {
                 headers: {
                     'Cookie': 'token=notrealtoken',
                     'Accept': 'application/json'
                 }
             });
             //check for error code 403
-            expect(updatedBooking.status()).toBe(403);
+            expect(deletedBooking.status()).toBe(403);
         });
 
         test('Try to patch booking detail for nonexistant booking id', async ({ request }) => {
-            //create booking
-            const createBooking = await request.post('/booking', {
-                data: myBooking
-            });
-            //make sure it was successful
-            expect(createBooking.status()).toBe(200);
-            //try to patch new booking
-            const response = await createBooking.json();
-            //create auth token and update booking
+            //create auth token and try to update nonexistant booking
             const authResponse = await request.post('/auth', {
                 data: {
                     username: "admin",
@@ -200,15 +192,7 @@ test.describe('Negative Paths', () => {
         });
 
         test('Try to delete booking for nonexistant booking id', async ({ request }) => {
-            //create booking
-            const createBooking = await request.post('/booking', {
-                data: myBooking
-            });
-            //make sure it was successful
-            expect(createBooking.status()).toBe(200);
-            //try to patch new booking
-            const response = await createBooking.json();
-            //create auth token
+            //create auth token and try to delete nonexistant booking
             const authResponse = await request.post('/auth', {
                 data: {
                     username: "admin",
@@ -218,14 +202,14 @@ test.describe('Negative Paths', () => {
 
             const myToken = await authResponse.json();
 
-            const updatedBooking = await request.delete(`/booking/0`, {
+            const deletedBooking = await request.delete(`/booking/0`, {
                 headers: {
                     'Cookie': `token=${myToken.token}`,
                     'Accept': 'application/json'
                 }
             });
             //check for error code
-            expect(updatedBooking.status()).toBe(405); //normally would expect a 404
+            expect(deletedBooking.status()).toBe(405); //normally would expect a 404
         });
 
         test('Try to create booking with totalprice as a string', async ({ request }) => {

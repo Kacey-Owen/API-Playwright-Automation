@@ -97,7 +97,7 @@ test.describe('Negative Paths', () => {
                 data: myBookingError,
             });
             //check error code
-            expect(createBooking.status()).toBe(500);//api returns 500 code for unahndled exception
+            expect(createBooking.status()).toBe(500);//api returns 500 code for unhandled exception
         });
 
         test('Try to patch a booking without auth headers', async ({ request }) => {

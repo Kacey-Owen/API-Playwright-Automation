@@ -32,7 +32,6 @@ The suite covers happy paths as well as negative path, edge cases, and abnormal 
 
 <br>
 <br>
----
 <br>
 <h2 align="center">📖 Findings</h2>
 
